@@ -1,20 +1,122 @@
-// CppArduinoReader.cpp : This file contains the 'main' function. Program execution begins and ends there.
-//
+#include <windows.h>
+#include <string>
+#include <stdio.h>
 
-#include <iostream>
+#define ARDUINO_WAIT_TIME 2000
+
+std::string portNumber;
+HANDLE hSerial;
+bool connected;
+COMSTAT status;
+
+bool connectPrinter(char* portName) {
+
+    //Connects to the port.
+    hSerial = CreateFileA(portName,
+        GENERIC_READ | GENERIC_WRITE,
+        0,
+        NULL,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        NULL);
+
+    if (hSerial == INVALID_HANDLE_VALUE)
+    {
+        if (GetLastError() == ERROR_FILE_NOT_FOUND) {
+            printf("ERROR: Handle was not attached. Reason: %s not available.\n", portName);
+            return false;
+        }
+        else
+        {
+            //If port is in use by another program or did not closed previous process.
+            printf("ERROR!!! \n");
+            CloseHandle(hSerial);
+            return false;
+        }
+    }
+    else
+    {
+
+        DCB dcbSerialParams = { 0 };
+
+        if (!GetCommState(hSerial, &dcbSerialParams))
+        {
+            printf("failed to get current serial parameters!");
+            return false;
+        }
+        else
+        {
+            // Set Serial Port specifications.
+            dcbSerialParams.BaudRate = 9600;// CBR_115200;
+            dcbSerialParams.ByteSize = 8;
+            dcbSerialParams.StopBits = ONESTOPBIT;
+            dcbSerialParams.Parity = NOPARITY;
+
+            if (!SetCommState(hSerial, &dcbSerialParams))
+            {
+                printf("ALERT: Could not set Serial Port parameters");
+                return false;
+            }
+            else
+            {
+                connected = true;
+                printf("Connection Successful for :%s !!! \n", portName);
+                //Wait 2s as the arduino board will be reseting
+                return true;
+                Sleep(ARDUINO_WAIT_TIME);
+            }
+        }
+    }
+
+}
+
+
+int readData(char* buffer, unsigned int nbChar) {
+
+    DWORD bytesRead;
+    DWORD dwCommModemStatus;
+
+    //Set the type of data to be caught.(RXCHAR -> Data available on RX pin.)
+    SetCommMask(hSerial, EV_RXCHAR);
+
+    while (hSerial != INVALID_HANDLE_VALUE)
+    {
+        // Wait for an event to occur for the port.
+        WaitCommEvent(hSerial, &dwCommModemStatus, 0);
+
+        if (dwCommModemStatus & EV_RXCHAR)
+        {
+            //unsigned int toRead;
+            //ClearCommError(this->hSerial, &this->errors, &this->status);
+            do
+            {
+                // Read the data from the serial port.
+                ReadFile(hSerial, buffer, 1, &bytesRead, 0);
+                // Display the data read.
+                printf("%d %c\n", bytesRead, buffer[0]);
+                //printf("%s", buffer);
+
+            } while (bytesRead > 0);
+        }
+    }
+    //}
+    //If nothing has been read, or that an error was detected return -1
+    return -1;
+}
 
 int main()
 {
-    std::cout << "Hello World!\n";
+
+    char* buffer = new char[32768];
+    int nbChar = 32768;
+    std::string str = "COM3"; // Use your port number to connect
+
+    char* writable = new char[str.size() + 1];
+    std::copy(str.begin(), str.end(), writable);
+    writable[str.size()] = '\0';
+
+    connectPrinter(writable);
+    delete[]writable;
+    readData(buffer, nbChar);
+    return 0;
 }
-
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
-
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
