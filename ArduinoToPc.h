@@ -2,9 +2,8 @@
 
 #include <exception>
 #include <iostream>
+#include <windows.h>
 
-class HANDLE;
-class COMSTAT;
 
 /* This custom exception manage problem for the aruinoToPcClass 
 * It is made the way to have a future logic with logs, maybe some saved logged files
@@ -28,9 +27,14 @@ public:
 	bool isConnected() const;
 
 	void readInfinitlyTheOutput();
+	unsigned int readCom(char *buffer, unsigned int bufferSize);
 
 private:
+	//fct
+	void setMode();
 
+
+	// var
 	const std::string _comPortName;
 	const unsigned int _serialRate;
 	bool _isconnected = false;
@@ -38,3 +42,9 @@ private:
 	COMSTAT status;
 
 };
+
+/* hope it's useful for you
+	|\__/,|   (`\
+  _.|o o  |_   ) )
+-(((---(((--------
+*/
