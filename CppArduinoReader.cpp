@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <string>
 #include <stdio.h>
+#include <iostream>
 
 #define ARDUINO_WAIT_TIME 2000
 
@@ -71,8 +72,14 @@ bool connectPrinter(char* portName) {
 }
 
 
-int readData(char* buffer, unsigned int nbChar) {
+int readData() 
+{
+    const int sizeofBuffer = 1024
+    char *buffer = new char [sizeofBuffer];
+    buffer[0] = 0;
 
+
+    std::cout << "Size of " << sizeof(buffer) << std::endl;
     DWORD bytesRead;
     DWORD dwCommModemStatus;
 
@@ -91,10 +98,28 @@ int readData(char* buffer, unsigned int nbChar) {
             do
             {
                 // Read the data from the serial port.
-                ReadFile(hSerial, buffer, 1, &bytesRead, 0);
-                // Display the data read.
-                printf("%d %c\n", bytesRead, buffer[0]);
-                //printf("%s", buffer);
+                if (ReadFile(hSerial, buffer, 1024, &bytesRead, 0) == true) //success
+                {
+
+                    if (bytesRead < sizeof(buffer))
+                        buffer[bytesRead] = '\0';
+                    // Display the data read.
+                    //printf("%d %c\n", bytesRead, buffer[0]);
+
+                    std::cout << sizeof(buffer) << " Read : " << bytesRead << std::endl;
+                    for (int i = 0; i < bytesRead; ++i)
+                    {
+                        std::cout << buffer[i];
+                    }
+                    std::string str;
+                   // std::getline(std::cin, str);
+                    // printf("%d : %s", bytesRead, buffer);
+                }
+                else
+                {
+                    std::cout << "Error while trying to read socket, maybe something went wrong" << std::endl;
+                    return -1;
+                }
 
             } while (bytesRead > 0);
         }
@@ -117,6 +142,6 @@ int main()
 
     connectPrinter(writable);
     delete[]writable;
-    readData(buffer, nbChar);
+    readData();
     return 0;
 }
