@@ -158,3 +158,16 @@ void ArduinoToPc::readInfinitlyTheOutput()
 		}
 	}
 }
+
+/// <summary>
+/// Send a message on the serial of the arduino
+/// </summary>
+/// <param name="str"></param>
+void ArduinoToPc::writeToArduino(const std::string& str)
+{
+	DWORD written;
+
+	if (!WriteFile(_hSerial, str.c_str(), str.size(), &written, NULL))
+		throw ArduinoToPc_Exception("writeToArduino", "Error trying to write on socket : " + GetLastError());
+	std::cout << "Writting sucessful" << std::endl;
+}

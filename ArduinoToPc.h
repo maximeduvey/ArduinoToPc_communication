@@ -29,6 +29,8 @@ public:
 	void readInfinitlyTheOutput();
 	unsigned int readCom(char *buffer, unsigned int bufferSize);
 
+	void writeToArduino(const std::string &str);
+
 private:
 	//fct
 	void setMode();
