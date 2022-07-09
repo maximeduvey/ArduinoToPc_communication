@@ -1,2 +1,4 @@
 # CppArduinoReader
-The goal of this project is to be able to read the output socket of the arduino connected to the pc
+The goal of this project is to create a communication between a connected Arduino and the PC
+
+ . Later on i'll add my TCP client/Server to share the informations
